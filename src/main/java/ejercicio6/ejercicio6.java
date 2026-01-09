@@ -204,9 +204,10 @@ public class ejercicio6 {
                 if (tieneOpinionUsuario) {
                     mostrarPelicula = true;
                     System.out.println(p.getId() + ". " + p.getTitulo() + " (" + p.getDirector() + ", " + p.getAnyo() + ") ");
+                    System.out.println("Opiniones:");
 
                     for (int i = 0; i < opinionUsuarioPelicula.size(); i++) {
-                        System.out.println((i + 1) + ": " + opinionUsuarioPelicula.get(i));
+                        System.out.println("- " + usuario + ": " + opinionUsuarioPelicula.get(i));
                     }
                 }
             }
