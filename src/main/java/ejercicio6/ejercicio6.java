@@ -45,6 +45,7 @@ public class ejercicio6 {
 
             switch (opcion) {
                 case 1 -> mostrarFilmoteca(session);
+                case 2 -> iniciarSesion(session);
                 case 3 -> System.exit(0);
                 default -> System.out.println("invalid option");
             }
@@ -168,4 +169,83 @@ public class ejercicio6 {
         session.getTransaction().commit();
         session.clear();
     }
+
+    public static void iniciarSesion(Session session) {
+        session.beginTransaction();
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("usuario: ");
+        String usuario = sc.nextLine().trim();
+        System.out.println("Se ha iniciado sesion como '" + usuario + "'.");
+
+        List<Pelicula> listaPeliculas = session.createQuery("From ejercicio6.Pelicula", Pelicula.class).list();
+        List<Opinion> listaOpiniones = session.createQuery("From ejercicio6.Opinion", Opinion.class).list();
+
+        if (!listaPeliculas.isEmpty()) {
+
+            boolean mostrarPelicula = false;
+
+            for (Pelicula p : listaPeliculas) {
+
+                List<String> opinionUsuarioPelicula = new ArrayList<>();
+                boolean tieneOpinionUsuario = false;
+
+                if (!listaOpiniones.isEmpty()) {
+
+                    for (Opinion o : listaOpiniones) {
+
+                        if (o.getUsuario().equals(usuario) && o.getTitulo().equals(p.getTitulo())) {
+                            tieneOpinionUsuario = true;
+                            opinionUsuarioPelicula.add(o.getOpinion());
+                        }
+                    }
+                }
+
+                if (tieneOpinionUsuario) {
+                    mostrarPelicula = true;
+                    System.out.println(p.getId() + ". " + p.getTitulo() + " (" + p.getDirector() + ", " + p.getAnyo() + ") ");
+
+                    for (int i = 0; i < opinionUsuarioPelicula.size(); i++) {
+                        System.out.println((i + 1) + ": " + opinionUsuarioPelicula.get(i));
+                    }
+                }
+            }
+
+            if (!mostrarPelicula) {
+                System.err.println("No tienes opiniones registradas para ninguna película.");
+            }
+
+        } else {
+            System.err.println("No hay nada en la filmoteca para mostrar");
+        }
+
+        session.getTransaction().commit();
+        session.clear();
+    }
+
+    public static void gestionarOpiniones(Session session, List<String> opiniones) {
+        session.beginTransaction();
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("Gestionar opiniones:");
+        System.out.print("ID pelicula opinion a modificar/borrar: ");
+        int id = sc.nextInt();
+        System.out.print("(0) Borrar / (1) Modificar: ");
+        int opcion = sc.nextInt();
+
+        switch (opcion) {
+//            case 0 ->
+//            case 1 ->
+            default -> System.out.println("opcion no habilitada");
+        }
+
+        session.getTransaction().commit();
+        session.clear();
+    }
+
+    public static void borrarOpinion(List<String> opiniones, int id) {
+
+    }
+
+    public static void modificarOpinion(List<String> opiniones, int id) {}
 }
