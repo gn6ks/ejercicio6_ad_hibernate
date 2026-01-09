@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-configuration>
+    <session-factory>
+
+        <!-- Database connection settings -->
+        <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="connection.url">jdbc:mysql://localhost:3306/portal_cine</property>
+        <property name="connection.username">root</property>
+        <property name="connection.password"></property>
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
+
+        <!-- Show executed SQL in the console -->
+        <property name="show_sql">false</property>
+
+        <!-- Mapping file -->
+        <mapping resource="Opinion.hbm.xml"/>
+        <mapping resource="Pelicula.hbm.xml"/>
+
+    </session-factory>
+</hibernate-configuration>
