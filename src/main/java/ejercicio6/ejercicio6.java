@@ -15,6 +15,8 @@ import java.util.Scanner;
 
 public class ejercicio6 {
 
+    //TODO: documentar todo el ejercicio
+
     public static void main(String[] args) {
         Configuration configuration = new Configuration().configure("hibernate.cfg.xml");
         configuration.addResource("Pelicula.hbm.xml");
@@ -225,6 +227,7 @@ public class ejercicio6 {
     }
 
     public static void gestionarOpiniones(Session session, List<String> opiniones) {
+        //TODO: mirar si es por texto o si es por id
         session.beginTransaction();
         Scanner sc = new Scanner(System.in);
 
@@ -245,8 +248,10 @@ public class ejercicio6 {
     }
 
     public static void borrarOpinion(List<String> opiniones, int id) {
-
+        //TODO: preguntar a roberto si esta es la manera de hacerlo segun el id que se muestra?
     }
 
-    public static void modificarOpinion(List<String> opiniones, int id) {}
+    public static void modificarOpinion(List<String> opiniones, int id) {
+        //TODO: preguntar a roberto si esta es la manera de hacerlo segun el id que se muestra?
+    }
 }
