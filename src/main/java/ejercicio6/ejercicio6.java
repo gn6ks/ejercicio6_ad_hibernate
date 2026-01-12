@@ -6,16 +6,15 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
+import java.sql.Array;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class ejercicio6 {
-
-    //TODO: documentar todo el ejercicio
 
     public static void main(String[] args) {
         Configuration configuration = new Configuration().configure("hibernate.cfg.xml");
@@ -183,6 +182,9 @@ public class ejercicio6 {
         List<Pelicula> listaPeliculas = session.createQuery("From ejercicio6.Pelicula", Pelicula.class).list();
         List<Opinion> listaOpiniones = session.createQuery("From ejercicio6.Opinion", Opinion.class).list();
 
+        List<String> titulosParaExportar = new ArrayList<>();
+        List<String> opinionesParaExportar = new ArrayList<>();
+
         if (!listaPeliculas.isEmpty()) {
 
             boolean mostrarPelicula = false;
@@ -190,6 +192,8 @@ public class ejercicio6 {
             for (Pelicula p : listaPeliculas) {
 
                 List<String> opinionUsuarioPelicula = new ArrayList<>();
+                List<String> titulosOpiniones = new ArrayList<>();
+                List<Integer> idsOpiniones = new ArrayList<>();
                 boolean tieneOpinionUsuario = false;
 
                 if (!listaOpiniones.isEmpty()) {
@@ -197,8 +201,15 @@ public class ejercicio6 {
                     for (Opinion o : listaOpiniones) {
 
                         if (o.getUsuario().equals(usuario) && o.getTitulo().equals(p.getTitulo())) {
+                            // parte donde se guardan los titulos + opiniones + ids para mostrar
                             tieneOpinionUsuario = true;
                             opinionUsuarioPelicula.add(o.getOpinion());
+                            idsOpiniones.add(o.getId());
+                            titulosOpiniones.add(o.getTitulo());
+
+                            // estos son para exportarlos de manera correcta SOLO del usuario iniciado en la sesion
+                            titulosParaExportar.add(o.getTitulo());
+                            opinionesParaExportar.add(o.getOpinion());
                         }
                     }
                 }
@@ -209,7 +220,7 @@ public class ejercicio6 {
                     System.out.println("Opiniones:");
 
                     for (int i = 0; i < opinionUsuarioPelicula.size(); i++) {
-                        System.out.println("- " + usuario + ": " + opinionUsuarioPelicula.get(i));
+                        System.out.println("- " + idsOpiniones.get(i) + ": " + opinionUsuarioPelicula.get(i));
                     }
                 }
             }
@@ -222,36 +233,98 @@ public class ejercicio6 {
             System.err.println("No hay nada en la filmoteca para mostrar");
         }
 
+
         session.getTransaction().commit();
         session.clear();
+
+        System.out.println("¿Desea cambiar alguna de sus opiniones? (S/N/E (Exportar))");
+        String opcion = sc.nextLine().trim().toUpperCase();
+
+        switch (opcion) {
+            case "S" -> gestionarOpiniones(session);
+            case "E" -> exportarNuevoCSV(usuario, titulosParaExportar, opinionesParaExportar);
+            case "N" -> {}
+            default -> System.out.println("opcion invalida");
+        }
     }
 
-    public static void gestionarOpiniones(Session session, List<String> opiniones) {
-        //TODO: mirar si es por texto o si es por id
-        session.beginTransaction();
+    public static void gestionarOpiniones(Session session) {
         Scanner sc = new Scanner(System.in);
 
         System.out.println("Gestionar opiniones:");
-        System.out.print("ID pelicula opinion a modificar/borrar: ");
+        System.out.print("ID opinion a modificar/borrar: ");
         int id = sc.nextInt();
         System.out.print("(0) Borrar / (1) Modificar: ");
         int opcion = sc.nextInt();
 
         switch (opcion) {
-//            case 0 ->
-//            case 1 ->
+            case 0 -> borrarOpinion(id, session);
+            case 1 -> modificarOpinion(id, session);
             default -> System.out.println("opcion no habilitada");
         }
+    }
+
+    public static void borrarOpinion(int id, Session session) {
+        session.beginTransaction();
+
+        Opinion opinion = session.get(Opinion.class, id);
+
+        System.out.println("====== PAPELERA OPINIONES ======");
+        System.out.println("Se va a borrar la opinion con el ID '" + id + "'");
+        System.out.println("Borrando opinion '" + opinion.getOpinion() + "'");
+        System.out.println("====== PAPELERA OPINIONES ======");
+
+        session.delete(opinion);
+
+        System.err.println("Borrado con éxito.");
 
         session.getTransaction().commit();
         session.clear();
     }
 
-    public static void borrarOpinion(List<String> opiniones, int id) {
-        //TODO: preguntar a roberto si esta es la manera de hacerlo segun el id que se muestra?
+    public static void modificarOpinion(int id, Session session) {
+        session.beginTransaction();
+        Scanner sc = new Scanner(System.in);
+
+        Opinion opinion = (Opinion) session.load(Opinion.class, id);
+
+        System.out.println("====== MODIFICADOR ======");
+        System.out.print("Nueva Opinion: ");
+        String nuevaOpinion = sc.nextLine().trim();
+        System.out.println("====== MODIFICADOR ======");
+
+        opinion.setOpinion(nuevaOpinion);
+
+        System.out.println("👌 Opinión actualizada con exito");
+
+        session.getTransaction().commit();
+        session.clear();
     }
 
-    public static void modificarOpinion(List<String> opiniones, int id) {
-        //TODO: preguntar a roberto si esta es la manera de hacerlo segun el id que se muestra?
+    public static void exportarNuevoCSV(String nombreUsuario, List<String> titulos, List<String> opiniones) {
+
+        LocalDateTime ahora = LocalDateTime.now();
+        DateTimeFormatter formateador = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+        String nombreArchivo = nombreUsuario + "_" + ahora.format(formateador) + ".csv";
+        File archivo = new File(nombreArchivo);
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(archivo))) {
+
+            int numFilas = titulos.size();
+
+            for (int i = 0; i < numFilas; i++) {
+                bw.write(titulos.get(i));
+                bw.write(";");
+                bw.write(opiniones.get(i));
+                bw.newLine();
+            }
+
+            System.out.println("✅ Opiniones exportadas a " + nombreArchivo);
+
+        } catch (Exception e) {
+            System.err.println("❌ No se pudo guardar el archivo CSV.");
+            e.printStackTrace();
+        }
+
     }
 }
