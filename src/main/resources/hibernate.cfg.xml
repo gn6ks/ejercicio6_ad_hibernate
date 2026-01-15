@@ -16,6 +16,7 @@
         <!-- Mapping file -->
         <mapping resource="Opinion.hbm.xml"/>
         <mapping resource="Pelicula.hbm.xml"/>
+        <mapping resource="Cine.hbm.xml" />
 
     </session-factory>
 </hibernate-configuration>
